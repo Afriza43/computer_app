@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'pc_model.dart';
+import 'api_resource.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -23,175 +25,78 @@ class _HomePageState extends State<HomePage> {
   ];
 
   TextEditingController _searchController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
+        appBar: AppBar(
+          title: const Text("List Users"),
         ),
-        title: Text(
-          'PC Shop',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.black87,
+        body: _buildListUsersBody());
+  }
+
+  Widget _buildListUsersBody() {
+    return Container(
+      child: FutureBuilder(
+        future: ApiDataSource.instance.loadPC(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return _buildErrorSection();
+          }
+          if (snapshot.hasData) {
+            ComputerHardware computerHardware = ComputerHardware.fromJson(snapshot.data);
+            return _buildSuccessSection(computerHardware);
+          }
+          return _buildLoadingSection();
+        },
       ),
-      body: Container(
-        color: Colors.black87,
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        height: 250,
-                        viewportFraction: 1.2,
-                        initialPage: 0,
-                        enableInfiniteScroll: true,
-                        reverse: false,
-                        autoPlay: true,
-                        disableCenter: true,
-                        autoPlayInterval: Duration(seconds: 3),
-                        autoPlayAnimationDuration: Duration(milliseconds: 800),
-                      ),
-                      items: imageUrls.map((url) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Container(
-                              width: MediaQuery.of(context).size.width,
-                              child: Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
+    );
+  }
+
+  Widget _buildErrorSection() {
+    return Center(
+      child: Text("Error"),
+    );
+  }
+
+  Widget _buildLoadingSection() {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildSuccessSection(ComputerHardware data) {
+    return ListView.builder(
+        itemCount: data.data!.length,
+        itemBuilder: (BuildContext context, int index) {
+          return _buildItemUsers(data.data![index]);
+        });
+  }
+
+  Widget _buildItemUsers(Data computerHardware) {
+    return InkWell(
+      onTap: () => null,
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: context) => PageDetailUser(idUser:UserData.id!),)
+      //   ,
+      child: Card(
+        child: Row(
+          children: [
+            Container(
+              width: 100,
             ),
-            SliverToBoxAdapter(
-              child: Container(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _searchController,
-                    style: TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      hintStyle: TextStyle(color: Colors.white),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.white, // Mengubah warna ikon pencarian
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(50.0),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[700],
-                    ),
-                  ),
-                ),
-              ),
+            SizedBox(
+              width: 20,
             ),
-            SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  // final TourismPlace place = tourismPlaceList[index];
-                  return InkWell(
-                    onTap: () {
-                      // Navigator.push(context,
-                      //     MaterialPageRoute(builder: (context) {
-                      //   return HomePage(tempat: place);
-                      // }));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 5.0),
-                        child: Card(
-                            color: Colors.grey[800],
-                            child: Column(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(12)),
-                                  child: Image.network(
-                                    'https://cdn.idntimes.com/content-images/community/2020/08/geforce-super-2080s-3-1561506664-custom-1-2060x1374-1da65c8ce82012926802e740600c1e50_600x400.jpg',
-                                  ),
-                                ),
-                                Text(
-                                  'Laptop',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Rp 10.000.000',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  );
-                },
-                childCount: 10,
-              ),
-            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(computerHardware.harga!),
+                Text(computerHardware.deskripsi!),
+              ],
+            )
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavyBar(
-        backgroundColor: Colors.black87,
-        selectedIndex: _currentIndex,
-        onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavyBarItem(
-            icon: Icon(Icons.home),
-            title: Text('Home'),
-            activeColor: Colors.blue,
-          ),
-          BottomNavyBarItem(
-            icon: Icon(Icons.shopping_cart),
-            title: Text('Cart'),
-            activeColor: Colors.green,
-          ),
-          BottomNavyBarItem(
-            icon: Icon(Icons.favorite),
-            title: Text('Favorites'),
-            activeColor: Colors.red,
-          ),
-          BottomNavyBarItem(
-            icon: Icon(Icons.person),
-            title: Text('Profile'),
-            activeColor: Colors.purple,
-          ),
-        ],
       ),
     );
   }
