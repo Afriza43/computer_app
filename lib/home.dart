@@ -1,22 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:bottom_navy_bar/bottom_navy_bar.dart';
-import 'pc_model.dart';
-import 'api_resource.dart';
-
-void main() {
-  runApp(MaterialApp(
-    home: HomePage(),
-  ));
-}
+import 'package:computer_app/models/ComputerParts.dart';
+import 'package:computer_app/services/remote_service.dart';
+import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
   final List<String> imageUrls = [
     'https://img.freepik.com/free-psd/futuristic-cyber-monday-banner-template_23-2149117341.jpg?w=1380&t=st=1699317402~exp=1699318002~hmac=eb91a28dff900cf8353bceab187809fcad678f88e92324cc1d26222c4cf3b244',
     'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/computer-banner-sale-design-template-02eea24e0cad8513bcd0683eacb5fb47_screen.jpg?ts=1659342516',
@@ -24,77 +18,169 @@ class _HomePageState extends State<HomePage> {
     // Tambahkan URL gambar lainnya sesuai kebutuhan
   ];
 
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  List<Computer>? computers;
+  var isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    //fetch data from API
+    getData();
+  }
+
+  getData() async {
+    computers = await RemoteService().getComputers();
+    if (computers != null) {
+      setState(() {
+        isLoaded = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("List Users"),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+          color: Colors.white, //change your color here
         ),
-        body: _buildListUsersBody());
-  }
-
-  Widget _buildListUsersBody() {
-    return Container(
-      child: FutureBuilder(
-        future: ApiDataSource.instance.loadPC(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasError) {
-            return _buildErrorSection();
-          }
-          if (snapshot.hasData) {
-            ComputerHardware computerHardware = ComputerHardware.fromJson(snapshot.data);
-            return _buildSuccessSection(computerHardware);
-          }
-          return _buildLoadingSection();
-        },
+        title: const Text(
+          'PC Shop',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.black87,
       ),
-    );
-  }
-
-  Widget _buildErrorSection() {
-    return Center(
-      child: Text("Error"),
-    );
-  }
-
-  Widget _buildLoadingSection() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildSuccessSection(ComputerHardware data) {
-    return ListView.builder(
-        itemCount: data.data!.length,
-        itemBuilder: (BuildContext context, int index) {
-          return _buildItemUsers(data.data![index]);
-        });
-  }
-
-  Widget _buildItemUsers(Data computerHardware) {
-    return InkWell(
-      onTap: () => null,
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(builder: context) => PageDetailUser(idUser:UserData.id!),)
-      //   ,
-      child: Card(
-        child: Row(
-          children: [
-            Container(
-              width: 100,
+      body: Container(
+        color: Colors.black87,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  children: [
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        height: 250,
+                        viewportFraction: 1.2,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: true,
+                        disableCenter: true,
+                        autoPlayInterval: const Duration(seconds: 3),
+                        autoPlayAnimationDuration:
+                            const Duration(milliseconds: 800),
+                      ),
+                      items: imageUrls.map((url) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: Image.network(
+                                url,
+                                fit: BoxFit.fill,
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            SizedBox(
-              width: 20,
+            SliverToBoxAdapter(
+              child: Container(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle: const TextStyle(color: Colors.white),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Colors.white, // Mengubah warna ikon pencarian
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(50.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[700],
+                    ),
+                  ),
+                ),
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(computerHardware.harga!),
-                Text(computerHardware.deskripsi!),
-              ],
-            )
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  // final TourismPlace place = tourismPlaceList[index];
+                  return InkWell(
+                    onTap: () {
+                      // Navigator.push(context,
+                      //     MaterialPageRoute(builder: (context) {
+                      //   return HomePage(tempat: place);
+                      // }));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Card(
+                            color: Colors.grey[800],
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12)),
+                                  child: Image.network(
+                                    computers![index].gambar,
+                                    width: 100,
+                                    height: 100,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 15,
+                                ),
+                                Text(
+                                  computers![index].nama,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  "Rp ${computers![index].harga}",
+                                  style: const TextStyle(
+                                    color: Colors.blueAccent,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  );
+                },
+                childCount: 20,
+              ),
+            ),
           ],
         ),
       ),
