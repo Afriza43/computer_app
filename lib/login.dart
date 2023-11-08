@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:computer_app/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:crypto/crypto.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -9,28 +12,26 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
+  final _userController = TextEditingController();
   final _passwordController = TextEditingController();
 
   void _login() {
-    // Implementasi logika login di sini
-    String email = _emailController.text;
+    String user = _userController.text;
     String password = _passwordController.text;
 
-    // Contoh: validasi email dan password
-    if (email == "user" && password == "123") {
-      // Berhasil login
-      print("Login berhasil");
+    if (user == "user" && password == "123") {
+      var bytes = utf8.encode(password);
+      var sha = sha256.convert(bytes);
 
-      // Redirect ke halaman lain (contoh: homepage)
+      print("Original : $password");
+      print("Hash : $sha");
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) =>
-              HomePage(), // Ganti dengan widget homepage yang sesuai
+          builder: (context) => HomePage(),
         ),
       );
     } else {
-      // Tampilkan pesan kesalahan atau tindakan lain
       print("Login gagal");
     }
   }
@@ -61,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: TextFormField(
-                  controller: _emailController,
+                  controller: _userController,
                   decoration: InputDecoration(
                     labelText: "Username",
                     labelStyle: GoogleFonts.poppins(),
@@ -100,13 +101,5 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // Hapus controller ketika widget di-dispose
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }

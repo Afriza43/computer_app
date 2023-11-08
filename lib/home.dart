@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:bottom_bar/bottom_bar.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -162,34 +162,32 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavyBar(
-        backgroundColor: Colors.black87,
-        selectedIndex: _currentIndex,
-        onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+      bottomNavigationBar: BottomBar(
+        selectedIndex: _currentPage,
+        onTap: (int index) {
+          _pageController.jumpToPage(index);
+          setState(() => _currentPage = index);
         },
-        items: [
-          BottomNavyBarItem(
+        items: <BottomBarItem>[
+          BottomBarItem(
             icon: Icon(Icons.home),
             title: Text('Home'),
             activeColor: Colors.blue,
           ),
-          BottomNavyBarItem(
-            icon: Icon(Icons.shopping_cart),
-            title: Text('Cart'),
-            activeColor: Colors.green,
-          ),
-          BottomNavyBarItem(
+          BottomBarItem(
             icon: Icon(Icons.favorite),
             title: Text('Favorites'),
             activeColor: Colors.red,
           ),
-          BottomNavyBarItem(
+          BottomBarItem(
             icon: Icon(Icons.person),
-            title: Text('Profile'),
-            activeColor: Colors.purple,
+            title: Text('Account'),
+            activeColor: Colors.greenAccent.shade700,
+          ),
+          BottomBarItem(
+            icon: Icon(Icons.settings),
+            title: Text('Settings'),
+            activeColor: Colors.orange,
           ),
         ],
       ),
