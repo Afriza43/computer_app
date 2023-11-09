@@ -11,5 +11,10 @@ class RemoteService {
       var json = response.body;
       return computerFromJson(json);
     }
+    else {
+      // If the status code is not 200, handle the error or return a default value.
+      // For example, return an empty list.
+      return <Computer>[];
+    }
   }
 }
