@@ -3,6 +3,7 @@
 //     final computer = computerFromJson(jsonString);
 
 import 'dart:convert';
+import 'dart:ffi';
 
 List<Computer> computerFromJson(String str) =>
     List<Computer>.from(json.decode(str).map((x) => Computer.fromJson(x)));

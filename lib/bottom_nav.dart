@@ -1,45 +1,78 @@
 import 'package:computer_app/home.dart';
+import 'package:computer_app/profil.dart';
 import 'package:flutter/material.dart';
 import 'package:bottom_bar/bottom_bar.dart';
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({super.key});
+class BottomNavigation extends StatefulWidget {
+  const BottomNavigation({Key? key}) : super(key: key);
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State<BottomNavigation> createState() => _BottomNavigationState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _BottomNavigationState extends State<BottomNavigation> {
+  late PageController _pageController;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: HomePage(),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+        },
+        children: [
+          HomePage(),
+          ProfilePage(),
+        ],
+      ),
       bottomNavigationBar: BottomBar(
-        selectedIndex: 1, //_currentPage,
+        selectedIndex: _currentIndex,
+        backgroundColor: Colors.black87,
+        mainAxisAlignment: MainAxisAlignment.center,
         onTap: (int index) {
-          // _pageController.jumpToPage(index);
-          // setState(() => _currentPage = index);
+          _pageController.jumpToPage(index);
+          setState(() => _currentIndex = index);
         },
         items: <BottomBarItem>[
           BottomBarItem(
-            icon: Icon(Icons.home),
-            title: Text('Home'),
-            activeColor: Colors.blue,
+            icon: Icon(
+              Icons.home,
+              color: _currentIndex == 0 ? Colors.white : Colors.grey,
+            ),
+            title: Text(
+              'Home',
+              style: TextStyle(
+                color: _currentIndex == 0 ? Colors.white : Colors.grey,
+              ),
+            ),
+            activeColor: Colors.transparent,
           ),
           BottomBarItem(
-            icon: Icon(Icons.favorite),
-            title: Text('Favorites'),
-            activeColor: Colors.red,
-          ),
-          BottomBarItem(
-            icon: Icon(Icons.person),
-            title: Text('Account'),
-            activeColor: Colors.greenAccent.shade700,
-          ),
-          BottomBarItem(
-            icon: Icon(Icons.settings),
-            title: Text('Settings'),
-            activeColor: Colors.orange,
+            icon: Icon(
+              Icons.person,
+              color: _currentIndex == 1 ? Colors.white : Colors.grey,
+            ),
+            title: Text(
+              'Profile',
+              style: TextStyle(
+                color: _currentIndex == 1 ? Colors.white : Colors.grey,
+              ),
+            ),
+            activeColor: Colors.transparent,
           ),
         ],
       ),

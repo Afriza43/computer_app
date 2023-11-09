@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:computer_app/detail_produk.dart';
 import 'package:computer_app/models/ComputerParts.dart';
 import 'package:computer_app/services/remote_service.dart';
 import 'package:flutter/material.dart';
@@ -127,12 +128,16 @@ class _HomePageState extends State<HomePage> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
+                  final Computer pc = computers![index];
                   if (computers != null &&
                       computers!.isNotEmpty &&
                       index < computers!.length) {
                     return InkWell(
                       onTap: () {
-                        // Add your navigation logic here
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return DetailPC(komputer: pc);
+                        }));
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),

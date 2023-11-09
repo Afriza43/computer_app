@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:computer_app/bottom_nav.dart';
 import 'package:computer_app/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => BottomNavigation(),
         ),
       );
     } else {
