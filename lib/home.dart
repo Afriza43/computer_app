@@ -127,19 +127,18 @@ class _HomePageState extends State<HomePage> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  // final TourismPlace place = tourismPlaceList[index];
-                  return InkWell(
-                    onTap: () {
-                      // Navigator.push(context,
-                      //     MaterialPageRoute(builder: (context) {
-                      //   return HomePage(tempat: place);
-                      // }));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Card(
+                  if (computers != null &&
+                      computers!.isNotEmpty &&
+                      index < computers!.length) {
+                    return InkWell(
+                      onTap: () {
+                        // Add your navigation logic here
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Card(
                             color: Colors.grey[800],
                             child: Column(
                               children: [
@@ -152,9 +151,7 @@ class _HomePageState extends State<HomePage> {
                                     height: 100,
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: 15,
-                                ),
+                                const SizedBox(height: 15),
                                 Text(
                                   computers![index].nama,
                                   style: const TextStyle(
@@ -173,12 +170,16 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               ],
-                            )),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    return Container(); // Placeholder or loading indicator can be added here
+                  }
                 },
-                childCount: 20,
+                childCount: computers != null ? computers!.length : 0,
               ),
             ),
           ],
