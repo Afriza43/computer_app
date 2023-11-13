@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:computer_app/models/ComputerParts.dart';
-import 'package:computer_app/services/remote_service.dart';
 
 class DetailPC extends StatefulWidget {
   final Computer komputer;
