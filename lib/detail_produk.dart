@@ -12,13 +12,12 @@ class DetailPC extends StatefulWidget {
 
 class _DetailPCState extends State<DetailPC> {
   int quantity = 1;
-  String selectedCurrency = 'IDR'; // Default currency is Indonesian Rupiah
-  double exchangeRate = 1.0; // Default exchange rate for IDR
+  String selectedCurrency = 'IDR';
+  double exchangeRate = 1.0;
   late double harga;
 
   @override
   Widget build(BuildContext context) {
-    // Initialize harga in the build method
     harga = double.parse(widget.komputer.harga);
 
     return Scaffold(
@@ -115,8 +114,6 @@ class _DetailPCState extends State<DetailPC> {
                       ),
                     ],
                   ),
-
-                  // Currency Dropdown Button
                   Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -126,8 +123,7 @@ class _DetailPCState extends State<DetailPC> {
                     child: DropdownButton<String>(
                       value: selectedCurrency,
                       focusColor: Colors.white,
-                      dropdownColor:
-                          Colors.white, // Set the background color to white
+                      dropdownColor: Colors.white,
                       items: ['IDR', 'USD', 'GBP']
                           .map((currency) => DropdownMenuItem<String>(
                                 value: currency,
@@ -140,13 +136,12 @@ class _DetailPCState extends State<DetailPC> {
                       onChanged: (value) {
                         setState(() {
                           selectedCurrency = value!;
-                          // Update exchange rate based on selected currency
                           if (selectedCurrency == 'USD') {
                             exchangeRate = 15.658;
                           } else if (selectedCurrency == 'GBP') {
                             exchangeRate = 19.255;
                           } else {
-                            exchangeRate = 1.0; // Default exchange rate for IDR
+                            exchangeRate = 1.0;
                           }
                         });
                       },
