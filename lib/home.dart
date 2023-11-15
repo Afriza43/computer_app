@@ -43,8 +43,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-          color: Colors.white, //change your color here
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
         title: const Text(
           'PC Shop',
@@ -56,6 +56,18 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         backgroundColor: Colors.black87,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.access_time, // Icon jam
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // Navigator.push(context,
+              //     MaterialPageRoute(builder: (context) => KonversiWaktu()));
+            },
+          ),
+        ],
       ),
       body: Container(
         color: Colors.black87,
@@ -181,7 +193,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else {
-                    return Container(); // Placeholder or loading indicator can be added here
+                    return Container();
                   }
                 },
                 childCount: computers != null ? computers!.length : 0,
