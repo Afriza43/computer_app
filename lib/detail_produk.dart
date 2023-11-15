@@ -1,6 +1,11 @@
+import 'package:computer_app/cart.dart';
+import 'package:computer_app/helper/dbhelper.dart';
+import 'package:computer_app/models/Cart_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:computer_app/models/ComputerParts.dart';
+import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DetailPC extends StatefulWidget {
   final Computer komputer;
@@ -14,11 +19,35 @@ class _DetailPCState extends State<DetailPC> {
   int quantity = 1;
   String selectedCurrency = 'IDR';
   double exchangeRate = 1.0;
-  late double harga;
+  late double _harga;
+
+  DBHelper dbHelper = DBHelper();
+
+  saveCart(Cart cartItem) async {
+    Database db = await dbHelper.database;
+    var batch = db.batch();
+    db.execute(
+      'INSERT INTO computer (id, nama, harga, gambar, tipe, deskripsi, jumlah) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        cartItem.id,
+        cartItem.nama,
+        cartItem.harga,
+        cartItem.gambar,
+        cartItem.tipe,
+        cartItem.deskripsi,
+        cartItem.jumlah,
+      ],
+    );
+    await batch.commit();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CartPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    harga = double.parse(widget.komputer.harga);
+    _harga = double.parse(widget.komputer.harga);
 
     return Scaffold(
       appBar: AppBar(
@@ -100,11 +129,26 @@ class _DetailPCState extends State<DetailPC> {
                       SizedBox(width: 8),
                       Text(
                         selectedCurrency == 'IDR'
-                            ? "${harga}"
+                            ? NumberFormat.currency(
+                                    locale: 'ID',
+                                    symbol: "Rp",
+                                    decimalDigits: 0)
+                                .format(_harga)
+                                .toString()
                             : selectedCurrency == 'USD'
-                                ? "${harga * 0.000064}"
+                                ? NumberFormat.currency(
+                                        locale: 'en_US',
+                                        symbol: "\u0024",
+                                        decimalDigits: 0)
+                                    .format(_harga * 0.000064)
+                                    .toString()
                                 : selectedCurrency == 'GBP'
-                                    ? "${harga * 0.000052}"
+                                    ? NumberFormat.currency(
+                                            locale: 'en_US',
+                                            symbol: "€",
+                                            decimalDigits: 0)
+                                        .format(_harga * 0.000052)
+                                        .toString()
                                     : "",
                         style: GoogleFonts.poppins(
                           fontSize: 18,
@@ -206,12 +250,20 @@ class _DetailPCState extends State<DetailPC> {
                 ],
               ),
 
-              // Add to Cart Button
               GestureDetector(
                 onTap: () {
-                  // Add your cart functionality here
-                  // You can use the 'quantity' variable to get the number of products
-                },
+                  // Create a Cart object
+                  Cart cartItem = Cart(
+                    id: widget.komputer.id,
+                    nama: widget.komputer.nama,
+                    harga: widget.komputer.harga,
+                    gambar: widget.komputer.gambar,
+                    tipe: widget.komputer.tipe.toString().split('.').last,
+                    deskripsi: widget.komputer.deskripsi,
+                    jumlah: quantity,
+                  );
+                  saveCart(cartItem);
+                }, // Insert the cart item into the database                },
                 child: Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(

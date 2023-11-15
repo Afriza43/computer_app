@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
         iconTheme: IconThemeData(
           color: Colors.white,
         ),
-        title: const Text(
+        title: Text(
           'PC Shop',
           style: TextStyle(
             color: Colors.white,
@@ -87,9 +87,8 @@ class _HomePageState extends State<HomePage> {
                         reverse: false,
                         autoPlay: true,
                         disableCenter: true,
-                        autoPlayInterval: const Duration(seconds: 3),
-                        autoPlayAnimationDuration:
-                            const Duration(milliseconds: 800),
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
                       ),
                       items: imageUrls.map((url) {
                         return Builder(
@@ -112,14 +111,14 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Container(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(16.0),
                   child: TextField(
                     controller: _searchController,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Search...',
-                      hintStyle: const TextStyle(color: Colors.white),
-                      prefixIcon: const Icon(
+                      hintStyle: TextStyle(color: Colors.white),
+                      prefixIcon: Icon(
                         Icons.search,
                         color: Colors.white, // Mengubah warna ikon pencarian
                       ),
@@ -135,7 +134,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
               delegate: SliverChildBuilderDelegate(
@@ -152,15 +151,15 @@ class _HomePageState extends State<HomePage> {
                         }));
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          padding: EdgeInsets.symmetric(vertical: 5),
                           child: Card(
                             color: Colors.grey[800],
                             child: Column(
                               children: [
                                 ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
+                                  borderRadius: BorderRadius.vertical(
                                       top: Radius.circular(12)),
                                   child: Image.network(
                                     computers![index].gambar,
@@ -168,10 +167,10 @@ class _HomePageState extends State<HomePage> {
                                     height: 100,
                                   ),
                                 ),
-                                const SizedBox(height: 15),
+                                SizedBox(height: 15),
                                 Text(
                                   computers![index].nama,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -180,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 Text(
                                   "Rp ${computers![index].harga}",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.blueAccent,
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
