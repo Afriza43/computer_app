@@ -23,6 +23,19 @@ class _DetailPCState extends State<DetailPC> {
 
   DBHelper dbHelper = DBHelper();
 
+  // updateQuantity(Cart cartItem) async {
+  //   Database db = await dbHelper.database;
+  //   var batch = db.batch();
+  //   db.execute(
+  //     'UPDATE computer SET jumlah = ? WHERE id = ?',
+  //     [
+  //       cartItem.jumlah,
+  //       cartItem.id,
+  //     ],
+  //   );
+  //   await batch.commit();
+  // }
+
   saveCart(Cart cartItem) async {
     Database db = await dbHelper.database;
     var batch = db.batch();
@@ -105,7 +118,6 @@ class _DetailPCState extends State<DetailPC> {
 
               SizedBox(height: 8),
 
-              // Product Description
               Text(
                 widget.komputer.deskripsi,
                 style: GoogleFonts.poppins(
@@ -204,7 +216,6 @@ class _DetailPCState extends State<DetailPC> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Cart Icon and Quantity Counter
               Row(
                 children: [
                   GestureDetector(
@@ -249,10 +260,8 @@ class _DetailPCState extends State<DetailPC> {
                   ),
                 ],
               ),
-
               GestureDetector(
                 onTap: () {
-                  // Create a Cart object
                   Cart cartItem = Cart(
                     id: widget.komputer.id,
                     nama: widget.komputer.nama,
@@ -263,7 +272,7 @@ class _DetailPCState extends State<DetailPC> {
                     jumlah: quantity,
                   );
                   saveCart(cartItem);
-                }, // Insert the cart item into the database                },
+                },
                 child: Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(

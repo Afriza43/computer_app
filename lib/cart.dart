@@ -1,3 +1,4 @@
+import 'package:computer_app/check_out.dart';
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
 import 'package:flutter/material.dart';
@@ -84,12 +85,13 @@ class _CartPageState extends State<CartPage> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      // login
-                      //     ? _klikCekout(keranjanglist)
-                      //     : Navigator.of(context).push(MaterialPageRoute<Null>(
-                      //         builder: (BuildContext context) {
-                      //         return new Login();
-                      //       }));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CheckoutPage(cartItems: cartList),
+                        ),
+                      );
                     },
                     child: Container(
                       height: 40.0,
@@ -101,7 +103,7 @@ class _CartPageState extends State<CartPage> {
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(5),
                         boxShadow: [
-                          BoxShadow(color: Colors.blue, spreadRadius: 1),
+                          BoxShadow(color: Colors.blue, spreadRadius: 1)
                         ],
                       ),
                     ),
