@@ -2,7 +2,6 @@ import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:intl/intl.dart';
 
 class CheckoutPage extends StatelessWidget {
   final List<Cart> cartItems;
