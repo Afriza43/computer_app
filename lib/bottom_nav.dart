@@ -1,4 +1,5 @@
 import 'package:computer_app/cart.dart';
+import 'package:computer_app/history.dart';
 import 'package:computer_app/home.dart';
 import 'package:computer_app/profil.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
         onPageChanged: (index) {
           setState(() => _currentIndex = index);
         },
-        children: [HomePage(), ProfilePage(), CartPage()],
+        children: [HomePage(), ProfilePage(), CartPage(), HistoryPage()],
       ),
       bottomNavigationBar: BottomBar(
         selectedIndex: _currentIndex,
@@ -79,6 +80,19 @@ class _BottomNavigationState extends State<BottomNavigation> {
             ),
             title: Text(
               'Cart',
+              style: TextStyle(
+                color: _currentIndex == 1 ? Colors.white : Colors.grey,
+              ),
+            ),
+            activeColor: Colors.transparent,
+          ),
+          BottomBarItem(
+            icon: Icon(
+              Icons.history,
+              color: _currentIndex == 1 ? Colors.white : Colors.grey,
+            ),
+            title: Text(
+              'History',
               style: TextStyle(
                 color: _currentIndex == 1 ? Colors.white : Colors.grey,
               ),

@@ -1,4 +1,3 @@
-import 'package:computer_app/cart.dart';
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
 import 'package:flutter/material.dart';
@@ -52,10 +51,6 @@ class _DetailPCState extends State<DetailPC> {
       ],
     );
     await batch.commit();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => CartPage()),
-    );
   }
 
   @override

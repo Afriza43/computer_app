@@ -16,13 +16,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late SharedPreferences logindata;
-  late String username;
+  // late SharedPreferences logindata;
+  // late String username;
+  String username = "";
   final List<String> imageUrls = [
     'https://img.freepik.com/free-psd/futuristic-cyber-monday-banner-template_23-2149117341.jpg?w=1380&t=st=1699317402~exp=1699318002~hmac=eb91a28dff900cf8353bceab187809fcad678f88e92324cc1d26222c4cf3b244',
     'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/computer-banner-sale-design-template-02eea24e0cad8513bcd0683eacb5fb47_screen.jpg?ts=1659342516',
     'https://img.freepik.com/free-psd/black-friday-super-sale-facebook-cover-template_106176-1578.jpg?w=1380&t=st=1699317257~exp=1699317857~hmac=e79e16f3229eee0d1a868d16f6333906178fa0b0278d5a516933986043883cb0',
-    // Tambahkan URL gambar lainnya sesuai kebutuhan
   ];
 
   final TextEditingController _searchController = TextEditingController();
@@ -49,9 +49,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void initial() async {
-    logindata = await SharedPreferences.getInstance();
+    SharedPreferences logindata = await SharedPreferences.getInstance();
     setState(() {
-      username = logindata.getString('username')!;
+      username = logindata.getString('username') ?? "";
     });
   }
 
