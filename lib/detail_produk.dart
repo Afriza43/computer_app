@@ -22,35 +22,46 @@ class _DetailPCState extends State<DetailPC> {
 
   DBHelper dbHelper = DBHelper();
 
-  // updateQuantity(Cart cartItem) async {
-  //   Database db = await dbHelper.database;
-  //   var batch = db.batch();
-  //   db.execute(
-  //     'UPDATE computer SET jumlah = ? WHERE id = ?',
-  //     [
-  //       cartItem.jumlah,
-  //       cartItem.id,
-  //     ],
-  //   );
-  //   await batch.commit();
-  // }
+  Future<bool> saveOrUpdateCart(Cart cartItem) async {
+    try {
+      Database db = await dbHelper.database;
 
-  saveCart(Cart cartItem) async {
-    Database db = await dbHelper.database;
-    var batch = db.batch();
-    db.execute(
-      'INSERT INTO computer (id, nama, harga, gambar, tipe, deskripsi, jumlah) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [
-        cartItem.id,
-        cartItem.nama,
-        cartItem.harga,
-        cartItem.gambar,
-        cartItem.tipe,
-        cartItem.deskripsi,
-        cartItem.jumlah,
-      ],
-    );
-    await batch.commit();
+      List<Map<String, dynamic>> result = await db.query(
+        'computer',
+        where: 'id = ?',
+        whereArgs: [cartItem.id],
+      );
+
+      if (result.isNotEmpty) {
+        // If the item is in the cart, update the quantity
+        await db.update(
+          'computer',
+          {'jumlah': cartItem.jumlah},
+          where: 'id = ?',
+          whereArgs: [cartItem.id],
+        );
+      } else {
+        // If the item is not in the cart, insert a new record
+        await db.insert(
+          'computer',
+          {
+            'id': cartItem.id,
+            'nama': cartItem.nama,
+            'harga': cartItem.harga,
+            'gambar': cartItem.gambar,
+            'tipe': cartItem.tipe,
+            'deskripsi': cartItem.deskripsi,
+            'jumlah': cartItem.jumlah,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+
+      return true; // Success
+    } catch (e) {
+      print('Error saving/updating cart: $e');
+      return false; // Failure
+    }
   }
 
   @override
@@ -256,7 +267,7 @@ class _DetailPCState extends State<DetailPC> {
                 ],
               ),
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Cart cartItem = Cart(
                     id: widget.komputer.id,
                     nama: widget.komputer.nama,
@@ -266,7 +277,26 @@ class _DetailPCState extends State<DetailPC> {
                     deskripsi: widget.komputer.deskripsi,
                     jumlah: quantity,
                   );
-                  saveCart(cartItem);
+
+                  // Save or update cart based on item existence
+                  bool success = await saveOrUpdateCart(cartItem);
+
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content:
+                            Text('Item added/updated in cart successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to add/update item in cart'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
                 child: Container(
                   padding: EdgeInsets.all(8),

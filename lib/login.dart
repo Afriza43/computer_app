@@ -1,13 +1,12 @@
-import 'dart:convert';
 import 'package:computer_app/bottom_nav.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bcrypt/bcrypt.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -22,14 +21,14 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    check_if_already_login();
+    checkIfAlreadyLogin();
   }
 
-  void check_if_already_login() async {
+  void checkIfAlreadyLogin() async {
     logindata = await SharedPreferences.getInstance();
-    newuser = (logindata.getBool('login') ?? true);
+    newuser = logindata.getBool('login') ?? true;
     print(newuser);
-    if (newuser == false) {
+    if (!newuser) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
         return const BottomNavigation();
       }));
@@ -47,85 +46,110 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-          child: Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 62),
-            Lottie.asset(
-              "./assets/lottie/pc.json",
-              width: 300,
-              height: 250,
-            ),
-            Text(
-              "Selamat Datang",
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        child: Padding(
+          padding: const EdgeInsets.all(9.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 62),
+              Lottie.asset(
+                "./assets/lottie/pc.json",
+                width: 300,
+                height: 250,
               ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextFormField(
-                controller: _username,
-                decoration: InputDecoration(
-                  labelText: "Username",
-                  labelStyle: GoogleFonts.poppins(),
+              Text(
+                "Selamat Datang",
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextFormField(
-                controller: _password,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle: GoogleFonts.poppins(),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextFormField(
+                  controller: _username,
+                  decoration: InputDecoration(
+                    labelText: "Username",
+                    labelStyle: GoogleFonts.poppins(),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 32,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                String username = _username.text;
-                String password = _password.text;
-
-                if (username != "" && password == "123") {
-                  var bytes = utf8.encode(password);
-                  var sha = sha256.convert(bytes);
-
-                  print("Original : $password");
-                  print("Hash : $sha");
-
-                  logindata.setBool("login", false);
-                  logindata.setString("username", username);
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) {
-                    return const BottomNavigation();
-                  }));
-                }
-              },
-              child: Text(
-                "Login",
-                style: GoogleFonts.poppins(),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextFormField(
+                  controller: _password,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    labelStyle: GoogleFonts.poppins(),
+                  ),
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                "Buat Akun",
-                style: GoogleFonts.poppins(),
+              const SizedBox(
+                height: 32,
               ),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: () async {
+                  String username = _username.text;
+                  String password = _password.text;
+
+                  // Check if the login credentials are valid
+                  if (password == "123") {
+                    String hashedPassword = await hashPassword(password);
+
+                    if (username == "user" &&
+                        verifyPassword(password, hashedPassword)) {
+                      print("Hashed Password: $hashedPassword");
+
+                      logindata.setBool("login", false);
+                      logindata.setString("username", username);
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) {
+                        return const BottomNavigation();
+                      }));
+                    }
+                  } else {
+                    // Show red snackbar with "Password Salah" message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Password Salah",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text(
+                  "Login",
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  "Buat Akun",
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
+  }
+
+  // Function to hash the password
+  Future<String> hashPassword(String password) async {
+    const rounds = 12; // You can adjust the number of rounds as needed
+    return BCrypt.hashpw(password, BCrypt.gensalt(logRounds: rounds));
+  }
+
+  // Function to verify the password
+  bool verifyPassword(String password, String hashedPassword) {
+    return BCrypt.checkpw(password, hashedPassword);
   }
 }
