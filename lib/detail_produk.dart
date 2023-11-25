@@ -1,8 +1,8 @@
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
+import 'package:computer_app/models/ComputerParts.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:computer_app/models/ComputerParts.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -70,143 +70,138 @@ class _DetailPCState extends State<DetailPC> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.komputer.nama,
-          style: GoogleFonts.poppins(),
-        ),
+        actions: [
+          buildProfileAvatar('https://plus.unsplash.com/premium_photo-1661389705400-b46e268f1981?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
                 children: [
                   Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          spreadRadius: 3,
-                          blurRadius: 5,
-                          offset: Offset(3, 3),
-                        ),
-                      ],
-                    ),
                     child: Image.network(
                       widget.komputer.gambar,
+                      width: 200,
+                      height: 200,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 25),
 
               // Product Name
-              Text(
-                widget.komputer.nama,
-                style: GoogleFonts.poppins(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
+              Container(
+                child: Text(
+                  widget.komputer.nama,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 10),
 
-              // Product Type
-              Text(
-                'Tipe: ${widget.komputer.tipe.toString().split('.').last}',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Text(
+                  widget.komputer.deskripsi,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                  ),
                 ),
               ),
-
-              SizedBox(height: 8),
-
-              Text(
-                widget.komputer.deskripsi,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Price:',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Price:',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        selectedCurrency == 'IDR'
-                            ? NumberFormat.currency(
-                                    locale: 'ID',
-                                    symbol: "Rp",
-                                    decimalDigits: 0)
-                                .format(_harga)
-                                .toString()
-                            : selectedCurrency == 'USD'
-                                ? NumberFormat.currency(
-                                        locale: 'en_US',
-                                        symbol: "\u0024",
-                                        decimalDigits: 0)
-                                    .format(_harga * 0.000064)
-                                    .toString()
-                                : selectedCurrency == 'GBP'
-                                    ? NumberFormat.currency(
-                                            locale: 'en_US',
-                                            symbol: "€",
-                                            decimalDigits: 0)
-                                        .format(_harga * 0.000052)
-                                        .toString()
-                                    : "",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                        const SizedBox(width: 8),
+                        Text(
+                          selectedCurrency == 'IDR'
+                              ? NumberFormat.currency(
+                                      locale: 'ID',
+                                      symbol: "Rp",
+                                      decimalDigits: 0)
+                                  .format(_harga)
+                                  .toString()
+                              : selectedCurrency == 'USD'
+                                  ? NumberFormat.currency(
+                                          locale: 'en_US',
+                                          symbol: "\u0024",
+                                          decimalDigits: 0)
+                                      .format(_harga * 0.000064)
+                                      .toString()
+                                  : selectedCurrency == 'SGD'
+                                      ? NumberFormat.currency(
+                                              locale: 'en_US',
+                                              symbol: "S\u0024",
+                                              decimalDigits: 0)
+                                          .format(_harga * 0.000086)
+                                          .toString()
+                                      : "",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
+                      ],
                     ),
-                    child: DropdownButton<String>(
-                      value: selectedCurrency,
-                      focusColor: Colors.white,
-                      dropdownColor: Colors.white,
-                      items: ['IDR', 'USD', 'GBP']
-                          .map((currency) => DropdownMenuItem<String>(
-                                value: currency,
-                                child: Text(
-                                  currency,
-                                  style: GoogleFonts.poppins(),
-                                ),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCurrency = value!;
-                          if (selectedCurrency == 'USD') {
-                            exchangeRate = 15.658;
-                          } else if (selectedCurrency == 'GBP') {
-                            exchangeRate = 19.255;
-                          } else {
-                            exchangeRate = 1.0;
-                          }
-                        });
-                      },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: selectedCurrency,
+                        focusColor: Colors.white,
+                        dropdownColor: Colors.white,
+                        items: ['IDR', 'USD', 'SGD']
+                            .map((currency) => DropdownMenuItem<String>(
+                                  value: currency,
+                                  child: Text(
+                                    currency,
+                                    style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.black),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCurrency = value!;
+                            if (selectedCurrency == 'USD') {
+                              exchangeRate = 15.658;
+                            } else if (selectedCurrency == 'SGD') {
+                              exchangeRate = 11.637;
+                            } else {
+                              exchangeRate = 1.0;
+                            }
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -218,7 +213,7 @@ class _DetailPCState extends State<DetailPC> {
       bottomNavigationBar: BottomAppBar(
         child: Container(
           height: 80.0,
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -232,8 +227,8 @@ class _DetailPCState extends State<DetailPC> {
                         }
                       });
                     },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.grey,
+                    child: const CircleAvatar(
+                      backgroundColor: Colors.red,
                       child: Icon(
                         Icons.remove,
                         color: Colors.white,
@@ -244,7 +239,7 @@ class _DetailPCState extends State<DetailPC> {
                     backgroundColor: Colors.white,
                     child: Text(
                       quantity.toString(),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.montserrat(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
@@ -256,8 +251,8 @@ class _DetailPCState extends State<DetailPC> {
                         quantity++;
                       });
                     },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.black,
+                    child: const CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
                       child: Icon(
                         Icons.add,
                         color: Colors.white,
@@ -283,7 +278,7 @@ class _DetailPCState extends State<DetailPC> {
 
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content:
                             Text('Item added/updated in cart successfully'),
                         backgroundColor: Colors.green,
@@ -291,7 +286,7 @@ class _DetailPCState extends State<DetailPC> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Failed to add/update item in cart'),
                         backgroundColor: Colors.red,
                       ),
@@ -299,21 +294,21 @@ class _DetailPCState extends State<DetailPC> {
                   }
                 },
                 child: Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.add_shopping_cart,
                         color: Colors.white,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Add to Cart',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.montserrat(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -325,6 +320,16 @@ class _DetailPCState extends State<DetailPC> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildProfileAvatar(String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CircleAvatar(
+        backgroundImage: NetworkImage(imageUrl),
+        radius: 30, // Adjust the radius as needed
       ),
     );
   }

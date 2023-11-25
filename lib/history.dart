@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:computer_app/helper/dbhistory.dart';
 import 'package:computer_app/models/HistoryModel.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HistoryPage extends StatefulWidget {
   @override
@@ -37,7 +38,22 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Purchase History'),
+        automaticallyImplyLeading: false,
+        title: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Text(
+                'Pembelian Produk',
+                style: GoogleFonts.montserrat(
+                    fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          buildProfileAvatar('https://plus.unsplash.com/premium_photo-1661389705400-b46e268f1981?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+        ],
       ),
       body: historyList.isEmpty ? _emptyHistory() : _historyItem(),
     );
@@ -46,7 +62,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget _historyItem() {
     return SafeArea(
       child: Container(
-        color: const Color(0xff343434),
+        color: Colors.white,
         child: Column(
           children: <Widget>[
             Expanded(
@@ -63,8 +79,8 @@ class _HistoryPageState extends State<HistoryPage> {
                         padding: const EdgeInsets.all(20.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.blueAccent,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: ListTile(
                             dense: true,
@@ -90,21 +106,30 @@ class _HistoryPageState extends State<HistoryPage> {
                                           children: [
                                             Text(
                                               history.nama,
-                                              style: TextStyle(
-                                                fontSize: 16.0,
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.white,
+                                                fontSize: 15.0,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             Text(
-                                              'Subtotal: ${history.subtotal}, Quantity: ${history.quantity}',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 18.0,
+                                              'Subtotal: ${history.subtotal} Quantity: ${history.quantity}',
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.white,
+                                                fontSize: 15.0,
                                                 fontWeight: FontWeight.bold,
                                               ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
                                             ),
                                             Text(
                                               'Purchase Time: ${_formatDateTime(history.purchaseTime)}',
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.black,
+                                                fontSize: 15.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -147,8 +172,9 @@ class _HistoryPageState extends State<HistoryPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Purchase History is Empty',
-                    style: TextStyle(fontSize: 18),
+                    'Belum ada Pembelian',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -169,5 +195,15 @@ class _HistoryPageState extends State<HistoryPage> {
     var batch = db.batch();
     db.execute('DELETE FROM riwayat_bayar WHERE id=?', [id]);
     await batch.commit();
+  }
+
+  Widget buildProfileAvatar(String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CircleAvatar(
+        backgroundImage: NetworkImage(imageUrl),
+        radius: 30, // Adjust the radius as needed
+      ),
+    );
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:computer_app/check_out.dart';
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
@@ -53,18 +55,29 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shopping Cart',
-            style: GoogleFonts.montserrat(
-                fontSize: 14.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: const Color(0xff343434),
+        title: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Text("Shopping Cart",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  )),
+            ],
+          ),
+        ),
+        actions: [
+          buildProfileAvatar('https://plus.unsplash.com/premium_photo-1661389705400-b46e268f1981?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+        ],
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
       ),
       body: cartList.isEmpty ? _emptyCart() : _cartItem(),
       bottomNavigationBar: Visibility(
         visible: cartList.isEmpty ? false : true,
         child: BottomAppBar(
-          color: const Color(0xff343434),
+          color: Colors.white,
           child: Container(
             child: Row(
               children: [
@@ -75,21 +88,29 @@ class _CartPageState extends State<CartPage> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total Keranjang',
-                            style: GoogleFonts.montserrat(
-                                fontSize: 14.0, fontWeight: FontWeight.bold)),
-                        Text(
-                            'Rp. ' +
-                                NumberFormat.currency(
-                                        locale: 'ID',
-                                        symbol: "",
-                                        decimalDigits: 0)
-                                    .format(_subtotal)
-                                    .toString(),
-                            style: GoogleFonts.montserrat(
-                                color: Colors.red,
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold)),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text('Total Keranjang',
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                              'Rp. ' +
+                                  NumberFormat.currency(
+                                          locale: 'ID',
+                                          symbol: "",
+                                          decimalDigits: 0)
+                                      .format(_subtotal)
+                                      .toString(),
+                              style: GoogleFonts.montserrat(
+                                  color: Colors.white,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold)),
+                        ),
                       ],
                     ),
                   ),
@@ -110,11 +131,11 @@ class _CartPageState extends State<CartPage> {
                       child: Center(
                         child: Text('Checkout',
                             style: GoogleFonts.montserrat(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold)),
                       ),
                       decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
@@ -125,8 +146,9 @@ class _CartPageState extends State<CartPage> {
             padding:
                 EdgeInsets.only(left: 10.0, right: 10.0, top: 2.0, bottom: 2.0),
             decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8)),
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.blueAccent,
+            ),
           ),
           elevation: 0,
         ),
@@ -137,7 +159,7 @@ class _CartPageState extends State<CartPage> {
   Widget _cartItem() {
     return SafeArea(
       child: Container(
-        color: const Color(0xff343434),
+        color: Colors.white,
         child: Column(
           children: <Widget>[
             Expanded(
@@ -153,8 +175,12 @@ class _CartPageState extends State<CartPage> {
                         padding: const EdgeInsets.all(20.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(15),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF254DFF), Color(0xFF00C6FF)],
+                            ),
                           ),
                           child: ListTile(
                             dense: true,
@@ -179,7 +205,8 @@ class _CartPageState extends State<CartPage> {
                                         children: <Widget>[
                                           Text(cartList[i].nama,
                                               style: GoogleFonts.montserrat(
-                                                  fontSize: 16.0,
+                                                  fontSize: 18.0,
+                                                  color: Colors.white,
                                                   fontWeight: FontWeight.bold)),
                                           Text(
                                               'Rp. ' +
@@ -193,8 +220,8 @@ class _CartPageState extends State<CartPage> {
                                                           cartList[i].jumlah)
                                                       .toString(),
                                               style: GoogleFonts.montserrat(
-                                                  color: Colors.red,
-                                                  fontSize: 18.0,
+                                                  color: Colors.white,
+                                                  fontSize: 15.0,
                                                   fontWeight: FontWeight.bold)),
                                           Row(
                                             children: <Widget>[
@@ -224,7 +251,7 @@ class _CartPageState extends State<CartPage> {
                                                       },
                                                       child: Icon(
                                                         Icons.remove,
-                                                        color: Colors.green,
+                                                        color: Colors.redAccent,
                                                         size: 22,
                                                       ),
                                                     ),
@@ -234,8 +261,11 @@ class _CartPageState extends State<CartPage> {
                                                           .toString(),
                                                       style: GoogleFonts
                                                           .montserrat(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
                                                               color:
-                                                                  Colors.black,
+                                                                  Colors.white,
                                                               fontSize: 14.0),
                                                     ),
                                                     InkWell(
@@ -245,7 +275,8 @@ class _CartPageState extends State<CartPage> {
                                                       },
                                                       child: Icon(
                                                         Icons.add,
-                                                        color: Colors.green,
+                                                        color:
+                                                            Colors.greenAccent,
                                                         size: 22,
                                                       ),
                                                     ),
@@ -270,25 +301,9 @@ class _CartPageState extends State<CartPage> {
                                                       },
                                                       child: Container(
                                                         height: 25,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(2),
-                                                          border: Border.all(
-                                                              color:
-                                                                  Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color:
-                                                                    Colors.red,
-                                                                spreadRadius:
-                                                                    1),
-                                                          ],
-                                                        ),
                                                         child: Icon(
                                                           Icons.delete,
-                                                          color: Colors.white,
+                                                          color: Colors.black,
                                                           size: 22,
                                                         ),
                                                       ),
@@ -323,7 +338,7 @@ class _CartPageState extends State<CartPage> {
                       calculateTimes(selectedItem!),
                       style: GoogleFonts.montserrat(
                           fontSize: 18.0,
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
@@ -337,7 +352,7 @@ class _CartPageState extends State<CartPage> {
                                 item,
                                 style: GoogleFonts.montserrat(
                                     fontSize: 18.0,
-                                    color: Colors.lightBlueAccent,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold),
                               ),
                             ))
@@ -384,7 +399,8 @@ class _CartPageState extends State<CartPage> {
                                           Text(
                                             'Keranjang Kosong',
                                             style: GoogleFonts.montserrat(
-                                                fontSize: 18),
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       )),
@@ -462,5 +478,15 @@ class _CartPageState extends State<CartPage> {
     String hour = time.hour.toString().padLeft(2, '0');
     String minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  Widget buildProfileAvatar(String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CircleAvatar(
+        backgroundImage: NetworkImage(imageUrl),
+        radius: 30, // Adjust the radius as needed
+      ),
+    );
   }
 }

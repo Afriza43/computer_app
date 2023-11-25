@@ -65,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: const Color(0xff343434),
+        backgroundColor: Colors.white,
         body: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
@@ -102,26 +102,26 @@ class _ProfilePageState extends State<ProfilePage> {
               style: GoogleFonts.poppins(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               )),
           const SizedBox(height: 5),
           Text("124210007",
               style: GoogleFonts.poppins(
                 fontSize: 25,
-                color: Colors.white,
+                color: Colors.black,
               )),
           const SizedBox(height: 30),
           Text("Afriza Meidio",
               style: GoogleFonts.poppins(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               )),
           const SizedBox(height: 5),
           Text("124210043",
               style: GoogleFonts.poppins(
                 fontSize: 25,
-                color: Colors.white,
+                color: Colors.black,
               )),
           const SizedBox(height: 25),
           OutlinedButton(
@@ -132,7 +132,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   return LoginPage();
                 }));
               },
-              child: const Text('Logout'))
+              child: Text('Logout',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  )))
         ],
       );
 
