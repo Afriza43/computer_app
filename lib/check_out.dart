@@ -1,7 +1,9 @@
 import 'package:computer_app/helper/dbhelper.dart';
-import 'package:flutter/material.dart';
 import 'package:computer_app/helper/dbhistory.dart';
 import 'package:computer_app/models/Cart_model.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -15,20 +17,28 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   HistoryDBHelper dbHelper = HistoryDBHelper();
+  late String userName = "";
+
+  @override
+  void initState() {
+    super.initState();
+    getLoginData();
+  }
+
+  void getLoginData() async {
+    SharedPreferences logindata = await SharedPreferences.getInstance();
+    setState(() {
+      userName = logindata.getString('username') ?? "";
+    });
+  }
 
   saveHistory(String nama, int subtotal, String gambar, int quantity,
-      String purchaseTime) async {
+      String purchaseTime, String userName) async {
     Database db = await dbHelper.historyDatabase;
     var batch = db.batch();
     db.execute(
-      'INSERT INTO riwayat_bayar (nama, subtotal, gambar, quantity, purchaseTime) VALUES (?, ?, ?, ?, ?)',
-      [
-        nama,
-        subtotal,
-        gambar,
-        quantity,
-        purchaseTime,
-      ],
+      'INSERT INTO riwayat_bayar (nama, subtotal, gambar, quantity, purchaseTime, userName) VALUES (?, ?, ?, ?, ?, ?)',
+      [nama, subtotal, gambar, quantity, purchaseTime, userName],
     );
     await batch.commit();
   }
@@ -37,143 +47,146 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Checkout'),
-        backgroundColor: const Color(0xff343434),
+        title: Text('Checkout Pesanan',
+            style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            )),
+        backgroundColor: Colors.white,
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Ringkasan Pesanan',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Ringkasan Pesanan',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  )),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 10),
             for (var item in widget.cartItems)
               Card(
-                color: Colors.white,
+                color: Colors.blueAccent,
                 child: ListTile(
-                  title: Text(
-                    item.nama,
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Jumlah: ${item.jumlah}',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      Text(
-                        'Subtotal: ${int.parse(item.harga) * item.jumlah}',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                  trailing: Image.network(
+                  leading: Image.network(
                     item.gambar,
                     width: 50,
                     height: 50,
                     fit: BoxFit.cover,
                   ),
+                  title: Text(item.nama,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      )),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text('${item.jumlah} x ',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )),
+                          Text('${int.parse(item.harga) * item.jumlah}',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            SizedBox(height: 16),
-            Text(
-              'Total Pembelian: Rp. ${calculateTotal()}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
           ],
         ),
       ),
-      backgroundColor: const Color(0xff343434),
+      backgroundColor: Colors.white,
       bottomNavigationBar: BottomAppBar(
-        color: const Color(0xff343434),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xff343434),
-                borderRadius: BorderRadius.circular(8),
+        color: Colors.blueAccent,
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          Column(
+            children: [
+              Text(
+                'Total Harga',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              child: ElevatedButton(
-                onPressed: () async {
-                  for (var item in widget.cartItems) {
-                    await saveHistory(
-                      item.nama,
-                      int.parse(item.harga) * item.jumlah,
-                      item.gambar,
-                      item.jumlah,
-                      DateTime.now().toLocal().toString(),
-                    );
-                  }
-                  await clearCart();
-
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text(
-                          'Pembelian Berhasil',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        content: Text(
-                          'Terima kasih atas pembelian Anda!',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: const Color(0xff343434),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.popUntil(
-                                context,
-                                (route) => route.isFirst,
-                              );
-                            },
-                            child: Text(
-                              'OK',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+              Text(
+                'Rp ${calculateTotal()}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: ElevatedButton(
+              onPressed: () async {
+                for (var item in widget.cartItems) {
+                  await saveHistory(
+                    item.nama,
+                    int.parse(item.harga) * item.jumlah,
+                    item.gambar,
+                    item.jumlah,
+                    DateTime.now().toLocal().toString(),
+                    item.userName,
                   );
-                },
-                child: Text('Selesaikan Pembelian'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 255, 255, 255),
-                ),
-              ),
+                }
+                await clearCart();
+
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text(
+                        'Pembelian Berhasil',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      content: const Text(
+                        'Terima kasih atas pembelian Anda!',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.blueAccent,
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/bottom_nav');
+                          },
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Text('Selesaikan Pembelian',
+                  style: GoogleFonts.montserrat(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xff343434),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle "Back to Cart" button press
-                  Navigator.pop(context); // This pops the current screen
-                },
-                child: Text('Back to Cart'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 255, 255, 255),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
@@ -191,7 +204,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     Database db = await dbHelper.database;
     var batch = db.batch();
     for (var item in widget.cartItems) {
-      batch.delete('computer', where: 'id = ?', whereArgs: [item.id]);
+      batch.delete('computer',
+          where: 'id = ? AND userName = ?',
+          whereArgs: [item.id, item.userName]);
     }
     await batch.commit();
   }

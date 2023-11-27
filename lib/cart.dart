@@ -1,7 +1,14 @@
+// ignore_for_file: unused_local_variable
+
+import 'dart:io';
+
 import 'package:computer_app/check_out.dart';
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
+import 'package:computer_app/models/UserModels.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,17 +27,50 @@ class _CartPageState extends State<CartPage> {
   int _subtotal = 0;
   List<String> items = ['WIB', 'WITA', 'WIT', 'London'];
   String? selectedItem = 'WIB';
+  late String userName = '';
+  List<Users> userList = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
+    getLoginData();
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  void getLoginData() async {
+    SharedPreferences logindata = await SharedPreferences.getInstance();
+    setState(() {
+      userName = logindata.getString('username') ?? "";
+    });
     getCart();
+    getUsers();
+  }
+
+  Future<List<Users>> getUsers() async {
+    final Future<Database> dbFuture = dbHelper.initDb();
+    dbFuture.then((database) {
+      Future<List<Users>> userListFuture = dbHelper.getUsers(userName);
+      userListFuture.then((_userList) {
+        if (mounted) {
+          setState(() {
+            userList = _userList;
+          });
+        }
+      });
+    });
+    return userList;
   }
 
   Future<List<Cart>> getCart() async {
     final Future<Database> dbFuture = dbHelper.initDb();
     dbFuture.then((database) {
-      Future<List<Cart>> cartListFuture = dbHelper.getCart();
+      Future<List<Cart>> cartListFuture = dbHelper.getCart(userName);
       cartListFuture.then((_cartList) {
         if (mounted) {
           setState(() {
@@ -53,18 +93,35 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shopping Cart',
-            style: GoogleFonts.montserrat(
-                fontSize: 14.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: const Color(0xff343434),
+        title: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Text("Shopping Cart",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  )),
+            ],
+          ),
+        ),
+        actions: [
+          buildProfileAvatar(userList.isNotEmpty ? userList[0].gambar : null),
+        ],
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
       ),
-      body: cartList.isEmpty ? _emptyCart() : _cartItem(),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : cartList.isEmpty
+              ? _emptyCart()
+              : _cartItem(),
       bottomNavigationBar: Visibility(
         visible: cartList.isEmpty ? false : true,
         child: BottomAppBar(
-          color: const Color(0xff343434),
+          color: Colors.white,
           child: Container(
             child: Row(
               children: [
@@ -75,21 +132,29 @@ class _CartPageState extends State<CartPage> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total Keranjang',
-                            style: GoogleFonts.montserrat(
-                                fontSize: 14.0, fontWeight: FontWeight.bold)),
-                        Text(
-                            'Rp. ' +
-                                NumberFormat.currency(
-                                        locale: 'ID',
-                                        symbol: "",
-                                        decimalDigits: 0)
-                                    .format(_subtotal)
-                                    .toString(),
-                            style: GoogleFonts.montserrat(
-                                color: Colors.red,
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold)),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text('Total Keranjang',
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                              'Rp. ' +
+                                  NumberFormat.currency(
+                                          locale: 'ID',
+                                          symbol: "",
+                                          decimalDigits: 0)
+                                      .format(_subtotal)
+                                      .toString(),
+                              style: GoogleFonts.montserrat(
+                                  color: Colors.white,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold)),
+                        ),
                       ],
                     ),
                   ),
@@ -110,11 +175,11 @@ class _CartPageState extends State<CartPage> {
                       child: Center(
                         child: Text('Checkout',
                             style: GoogleFonts.montserrat(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold)),
                       ),
                       decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
@@ -125,8 +190,9 @@ class _CartPageState extends State<CartPage> {
             padding:
                 EdgeInsets.only(left: 10.0, right: 10.0, top: 2.0, bottom: 2.0),
             decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8)),
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.blueAccent,
+            ),
           ),
           elevation: 0,
         ),
@@ -137,7 +203,7 @@ class _CartPageState extends State<CartPage> {
   Widget _cartItem() {
     return SafeArea(
       child: Container(
-        color: const Color(0xff343434),
+        color: Colors.white,
         child: Column(
           children: <Widget>[
             Expanded(
@@ -153,8 +219,12 @@ class _CartPageState extends State<CartPage> {
                         padding: const EdgeInsets.all(20.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(15),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF254DFF), Color(0xFF00C6FF)],
+                            ),
                           ),
                           child: ListTile(
                             dense: true,
@@ -179,7 +249,8 @@ class _CartPageState extends State<CartPage> {
                                         children: <Widget>[
                                           Text(cartList[i].nama,
                                               style: GoogleFonts.montserrat(
-                                                  fontSize: 16.0,
+                                                  fontSize: 18.0,
+                                                  color: Colors.white,
                                                   fontWeight: FontWeight.bold)),
                                           Text(
                                               'Rp. ' +
@@ -193,8 +264,8 @@ class _CartPageState extends State<CartPage> {
                                                           cartList[i].jumlah)
                                                       .toString(),
                                               style: GoogleFonts.montserrat(
-                                                  color: Colors.red,
-                                                  fontSize: 18.0,
+                                                  color: Colors.white,
+                                                  fontSize: 15.0,
                                                   fontWeight: FontWeight.bold)),
                                           Row(
                                             children: <Widget>[
@@ -219,12 +290,14 @@ class _CartPageState extends State<CartPage> {
                                                         if (cartList[i].jumlah >
                                                             1) {
                                                           _kurangJmlKeranjang(
-                                                              cartList[i].id);
+                                                              cartList[i].id,
+                                                              cartList[i]
+                                                                  .userName);
                                                         }
                                                       },
                                                       child: Icon(
                                                         Icons.remove,
-                                                        color: Colors.green,
+                                                        color: Colors.redAccent,
                                                         size: 22,
                                                       ),
                                                     ),
@@ -234,18 +307,24 @@ class _CartPageState extends State<CartPage> {
                                                           .toString(),
                                                       style: GoogleFonts
                                                           .montserrat(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
                                                               color:
-                                                                  Colors.black,
+                                                                  Colors.white,
                                                               fontSize: 14.0),
                                                     ),
                                                     InkWell(
                                                       onTap: () {
                                                         _tambahJmlKeranjang(
-                                                            cartList[i].id);
+                                                            cartList[i].id,
+                                                            cartList[i]
+                                                                .userName);
                                                       },
                                                       child: Icon(
                                                         Icons.add,
-                                                        color: Colors.green,
+                                                        color:
+                                                            Colors.greenAccent,
                                                         size: 22,
                                                       ),
                                                     ),
@@ -266,29 +345,15 @@ class _CartPageState extends State<CartPage> {
                                                     child: InkWell(
                                                       onTap: () {
                                                         _deleteKeranjang(
-                                                            cartList[i].id);
+                                                            cartList[i].id,
+                                                            cartList[i]
+                                                                .userName);
                                                       },
                                                       child: Container(
                                                         height: 25,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(2),
-                                                          border: Border.all(
-                                                              color:
-                                                                  Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color:
-                                                                    Colors.red,
-                                                                spreadRadius:
-                                                                    1),
-                                                          ],
-                                                        ),
                                                         child: Icon(
                                                           Icons.delete,
-                                                          color: Colors.white,
+                                                          color: Colors.black,
                                                           size: 22,
                                                         ),
                                                       ),
@@ -323,7 +388,7 @@ class _CartPageState extends State<CartPage> {
                       calculateTimes(selectedItem!),
                       style: GoogleFonts.montserrat(
                           fontSize: 18.0,
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
@@ -337,7 +402,7 @@ class _CartPageState extends State<CartPage> {
                                 item,
                                 style: GoogleFonts.montserrat(
                                     fontSize: 18.0,
-                                    color: Colors.lightBlueAccent,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold),
                               ),
                             ))
@@ -372,24 +437,13 @@ class _CartPageState extends State<CartPage> {
                             children: <Widget>[
                               Expanded(
                                 child: Center(
-                                  child: Container(
-                                      padding: EdgeInsets.only(
-                                          left: 25.0, right: 25.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Keranjang Kosong',
-                                            style: GoogleFonts.montserrat(
-                                                fontSize: 18),
-                                          ),
-                                        ],
-                                      )),
+                                  child: Lottie.asset(
+                                    "./assets/lottie/cart_empty.json",
+                                    width: 340,
+                                    height: 300,
+                                  ),
                                 ),
-                              ),
+                              )
                             ],
                           ),
                         ),
@@ -406,31 +460,34 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  _tambahJmlKeranjang(String id) async {
+  _tambahJmlKeranjang(String id, String userName) async {
     Database db = await dbHelper.database;
     var batch = db.batch();
-    db.execute('UPDATE computer SET jumlah=jumlah+1 WHERE id=?', [id]);
+    db.execute('UPDATE computer SET jumlah=jumlah+1 WHERE id=? AND userName=?',
+        [id, userName]);
     await batch.commit();
   }
 
-  _kurangJmlKeranjang(String id) async {
+  _kurangJmlKeranjang(String id, String userName) async {
     Database db = await dbHelper.database;
     var batch = db.batch();
-    db.execute('UPDATE computer SET jumlah=jumlah-1 WHERE id=?', [id]);
+    db.execute('UPDATE computer SET jumlah=jumlah-1 WHERE id=? AND userName=?',
+        [id, userName]);
     await batch.commit();
   }
 
-  _deleteKeranjang(String id) async {
+  _deleteKeranjang(String id, String userName) async {
     Database db = await dbHelper.database;
     var batch = db.batch();
-    db.execute('DELETE FROM computer WHERE id=?', [id]);
+    db.execute(
+        'DELETE FROM computer WHERE id=? AND userName=?', [id, userName]);
     await batch.commit();
   }
 
-  _kosongkanKeranjang() async {
+  _kosongkanKeranjang(String userName) async {
     Database db = await dbHelper.database;
     var batch = db.batch();
-    db.execute('DELETE FROM computer');
+    db.execute('DELETE FROM computer WHERE userName=?', [userName]);
     await batch.commit();
   }
 
@@ -462,5 +519,18 @@ class _CartPageState extends State<CartPage> {
     String hour = time.hour.toString().padLeft(2, '0');
     String minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  Widget buildProfileAvatar(String? imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CircleAvatar(
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? FileImage(File(imageUrl))
+            : AssetImage('assets/images/user_profile.png')
+                as ImageProvider<Object>,
+        radius: 30, // Sesuaikan radius sesuai kebutuhan
+      ),
+    );
   }
 }

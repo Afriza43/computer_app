@@ -1,12 +1,17 @@
-// ignore_for_file: unused_local_variable
+// ignore_for_file: unused_local_variable,
+import 'dart:io';
+import 'dart:math';
 
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:computer_app/detail_produk.dart';
+import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/ComputerParts.dart';
+import 'package:computer_app/models/UserModels.dart';
 import 'package:computer_app/services/remote_service.dart';
+import 'package:computer_app/starrating.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,17 +23,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // late SharedPreferences logindata;
   // late String username;
+
   String username = "";
-  final List<String> imageUrls = [
-    'https://img.freepik.com/free-psd/futuristic-cyber-monday-banner-template_23-2149117341.jpg?w=1380&t=st=1699317402~exp=1699318002~hmac=eb91a28dff900cf8353bceab187809fcad678f88e92324cc1d26222c4cf3b244',
-    'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/computer-banner-sale-design-template-02eea24e0cad8513bcd0683eacb5fb47_screen.jpg?ts=1659342516',
-    'https://img.freepik.com/free-psd/black-friday-super-sale-facebook-cover-template_106176-1578.jpg?w=1380&t=st=1699317257~exp=1699317857~hmac=e79e16f3229eee0d1a868d16f6333906178fa0b0278d5a516933986043883cb0',
-  ];
+  DBHelper dbHelper = DBHelper();
 
   final TextEditingController _searchController = TextEditingController();
   List<Computer>? computers;
   List<Computer>? filteredComputers;
+  List<Users> userList = [];
   var isLoaded = false;
+  Tipe selectedTipe = Tipe.MOTHERBOARD;
 
   @override
   void initState() {
@@ -48,11 +52,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<List<Users>> getUsers() async {
+    final Future<Database> dbFuture = dbHelper.initDb();
+    dbFuture.then((database) {
+      Future<List<Users>> userListFuture = dbHelper.getUsers(username);
+      userListFuture.then((_userList) {
+        if (mounted) {
+          setState(() {
+            userList = _userList;
+          });
+        }
+      });
+    });
+    return userList;
+  }
+
   void initial() async {
     SharedPreferences logindata = await SharedPreferences.getInstance();
     setState(() {
       username = logindata.getString('username') ?? "";
     });
+    getUsers();
   }
 
   void onSearchTextChanged(String query) {
@@ -66,256 +86,424 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Computer>? displayComputers =
-        _searchController.text.isNotEmpty ? filteredComputers : computers;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff343434),
-        title: Text(
-          'Welcome $username',
-          style: GoogleFonts.montserrat(
-            color: Colors.white,
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                'Welcome $username',
+                style: GoogleFonts.montserrat(
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
-          // Replace the image URL with the URL of your profile image
-          buildProfileAvatar(
-              'https://plus.unsplash.com/premium_photo-1661389705400-b46e268f1981?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+          buildProfileAvatar(userList.isNotEmpty ? userList[0].gambar : null),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: TextField(
+              controller: _searchController,
+              style: GoogleFonts.montserrat(
+                  color: Colors.black,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold),
+              onChanged: onSearchTextChanged,
+              decoration: InputDecoration(
+                hintText: 'Search Computer Parts',
+                hintStyle: GoogleFonts.libreFranklin(
+                  color: Colors.grey,
+                  fontSize: 17,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: Colors.grey,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(80.0),
+                ),
+                filled: true,
+                fillColor: const Color(0xffEAF2F9),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Container(
-        color: const Color(0xff343434),
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: TextField(
-                    controller: _searchController,
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: onSearchTextChanged,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      hintStyle: GoogleFonts.montserrat(
-                          color: Colors.white, fontSize: 17),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Colors.white, // Mengubah warna ikon pencarian
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[700],
+        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0, left: 25.0),
+              child: Text(
+                'Discover Our Products',
+                style: GoogleFonts.montserrat(
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween, // Adjust as needed
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.only(top: 20.0, left: 25.0, bottom: 5.0),
+                  child: Text(
+                    'Top Sales',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.black,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0, right: 20.0),
+                  child: DropdownButton<Tipe>(
+                    value: selectedTipe,
+                    onChanged: (Tipe? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedTipe = newValue;
+                        });
+                      }
+                    },
+                    items: Tipe.values.map((Tipe tipe) {
+                      return DropdownMenuItem<Tipe>(
+                        value: tipe,
+                        child: Text(
+                          tipe.toString().split('.').last,
+                          style: GoogleFonts.montserrat(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        height: 250,
-                        viewportFraction: 1.2,
-                        initialPage: 0,
-                        enableInfiniteScroll: true,
-                        reverse: false,
-                        autoPlay: true,
-                        disableCenter: true,
-                        autoPlayInterval: const Duration(seconds: 3),
-                        autoPlayAnimationDuration:
-                            const Duration(milliseconds: 800),
+            SizedBox(
+              height: 180, // Set the height as needed
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: computers?.length ?? 0,
+                itemBuilder: (context, index) {
+                  if (computers == null) {
+                    return const SizedBox();
+                  }
+                  final Computer pc = computers![index];
+                  final double randomRating = Random().nextDouble() * 5.0;
+
+                  // Perform the comparison without null checks
+                  if (pc.tipe == selectedTipe) {
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: 25.0,
+                        bottom: 20.0,
                       ),
-                      items: imageUrls.map((url) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return SizedBox(
-                              width: MediaQuery.of(context).size.width,
+                      child: Container(
+                        width: 165,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF254DFF), Color(0xFF00C6FF)],
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
                               child: Image.network(
-                                url,
-                                fit: BoxFit.fill,
+                                pc.gambar,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
                               ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+                            ),
+                            const SizedBox(height: 15),
+                            Text(
+                              pc.nama,
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              pc.harga,
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
               ),
             ),
-            if (_searchController.text.isEmpty)
-              SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final Computer pc = computers![index];
-                    if (computers != null &&
-                        computers!.isNotEmpty &&
-                        index < computers!.length) {
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return DetailPC(komputer: pc);
-                          }));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                side: const BorderSide(
-                                  color: Colors.white,
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                child: _searchController.text.isEmpty
+                    ? ListView.builder(
+                        itemCount: computers != null ? computers!.length : 0,
+                        itemBuilder: (context, index) {
+                          final Computer pc = computers![index];
+                          final double randomRating =
+                              Random().nextDouble() * 5.0;
+
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return DetailPC(komputer: pc);
+                                  },
                                 ),
-                                borderRadius:
-                                    BorderRadius.circular(20.0), //<-- SEE HERE
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 25,
+                                vertical: 10,
                               ),
-                              color: const Color(0xff343434),
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 15),
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(8),
-                                        bottom: Radius.circular(8)),
-                                    child: Image.network(
-                                      computers![index].gambar,
-                                      width: 100,
-                                      height: 100,
+                              child: SizedBox(
+                                width: 280,
+                                height: 60,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 4,
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    computers![index].nama,
-                                    style: GoogleFonts.montserrat(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(12),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            spreadRadius: 2,
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.network(
+                                            pc.gambar,
+                                            width: 60,
+                                            height: 60,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    "Rp ${computers![index].harga}",
-                                    style: GoogleFonts.montserrat(
-                                      color: const Color.fromARGB(
-                                          255, 89, 244, 192),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                pc.nama,
+                                                style: GoogleFonts.montserrat(
+                                                  color: Colors.black,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              StarRating(rating: randomRating),
+                                              const SizedBox(width: 5),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container(); // Placeholder or loading indicator can be added here
-                    }
-                  },
-                  childCount: computers != null ? computers!.length : 0,
-                ),
-              ),
-            if (_searchController.text.isNotEmpty)
-              SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final Computer pc = filteredComputers![index];
-                    if (filteredComputers != null &&
-                        filteredComputers!.isNotEmpty &&
-                        index < filteredComputers!.length) {
-                      final Computer pc = filteredComputers![index];
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return DetailPC(komputer: pc);
-                          }));
+                          );
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                side: const BorderSide(
-                                  color: Colors.white,
+                      )
+                    : ListView.builder(
+                        itemCount: filteredComputers != null
+                            ? filteredComputers!.length
+                            : 0,
+                        itemBuilder: (context, index) {
+                          final Computer pc = filteredComputers![index];
+                          final double randomRating =
+                              Random().nextDouble() * 5.0;
+
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return DetailPC(komputer: pc);
+                                  },
                                 ),
-                                borderRadius: BorderRadius.circular(20.0),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                              color: const Color(0xff343434),
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 15),
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(8),
-                                        bottom: Radius.circular(8)),
-                                    child: Image.network(
-                                      filteredComputers![index].gambar,
-                                      width: 100,
-                                      height: 100,
+                              child: SizedBox(
+                                width:
+                                    280, // Adjust the width according to your layout
+                                height: 60,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 4,
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    filteredComputers![index].nama,
-                                    style: GoogleFonts.montserrat(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(left: 15.0),
+                                      child: Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: const BorderRadius.all(
+                                            Radius.circular(12),
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 2,
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Image.network(
+                                              pc.gambar,
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    "Rp ${filteredComputers![index].harga}",
-                                    style: GoogleFonts.montserrat(
-                                      color: const Color.fromARGB(
-                                          255, 89, 244, 192),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                pc.nama,
+                                                style: GoogleFonts.montserrat(
+                                                  color: Colors.black,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              StarRating(rating: randomRating),
+                                              const SizedBox(width: 5),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container(); // Placeholder or loading indicator can be added here
-                    } // ... your existing code
-                  },
-                  childCount:
-                      filteredComputers != null ? filteredComputers!.length : 0,
-                ),
+                          );
+                        },
+                      ),
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget buildProfileAvatar(String imageUrl) {
+  Widget buildProfileAvatar(String? imageUrl) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: CircleAvatar(
-        backgroundImage: NetworkImage(imageUrl),
-        radius: 30, // Adjust the radius as needed
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? FileImage(File(imageUrl))
+            : AssetImage('assets/images/user_profile.png')
+                as ImageProvider<Object>,
+        radius: 30, // Sesuaikan radius sesuai kebutuhan
       ),
     );
   }

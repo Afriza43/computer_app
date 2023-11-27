@@ -1,7 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/helper/dbhistory.dart';
 import 'package:computer_app/models/HistoryModel.dart';
+import 'package:computer_app/models/UserModels.dart';
+import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HistoryPage extends StatefulWidget {
   @override
@@ -10,18 +16,53 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   HistoryDBHelper dbHelper = HistoryDBHelper();
+  DBHelper db_Helper = DBHelper();
   List<History> historyList = [];
+  late String userName = '';
+  bool _isLoading = true;
+  List<Users> userList = [];
 
   @override
   void initState() {
     super.initState();
+    getLoginData();
+
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  void getLoginData() async {
+    SharedPreferences logindata = await SharedPreferences.getInstance();
+    setState(() {
+      userName = logindata.getString('username') ?? "";
+    });
     getHistory();
+    getUsers();
+  }
+
+  Future<List<Users>> getUsers() async {
+    final Future<Database> dbFuture = db_Helper.initDb();
+    dbFuture.then((database) {
+      Future<List<Users>> userListFuture = db_Helper.getUsers(userName);
+      userListFuture.then((_userList) {
+        if (mounted) {
+          setState(() {
+            userList = _userList;
+          });
+        }
+      });
+    });
+    return userList;
   }
 
   Future<List<History>> getHistory() async {
     final Future<Database> dbHistoryFuture = dbHelper.initHistoryDb();
     dbHistoryFuture.then((historyDatabase) {
-      final Future<List<History>> historyListFuture = dbHelper.getHistory();
+      final Future<List<History>> historyListFuture =
+          dbHelper.getHistory(userName);
       historyListFuture.then((_historyList) {
         if (mounted) {
           setState(() {
@@ -37,16 +78,37 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Purchase History'),
+        automaticallyImplyLeading: false,
+        title: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Text(
+                'Pembelian Produk',
+                style: GoogleFonts.montserrat(
+                    fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          buildProfileAvatar(userList.isNotEmpty ? userList[0].gambar : null),
+        ],
       ),
-      body: historyList.isEmpty ? _emptyHistory() : _historyItem(),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : historyList.isEmpty
+              ? _emptyHistory()
+              : _historyItem(),
     );
   }
 
   Widget _historyItem() {
     return SafeArea(
       child: Container(
-        color: const Color(0xff343434),
+        color: Colors.white,
         child: Column(
           children: <Widget>[
             Expanded(
@@ -63,8 +125,8 @@ class _HistoryPageState extends State<HistoryPage> {
                         padding: const EdgeInsets.all(20.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.blueAccent,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: ListTile(
                             dense: true,
@@ -90,21 +152,30 @@ class _HistoryPageState extends State<HistoryPage> {
                                           children: [
                                             Text(
                                               history.nama,
-                                              style: TextStyle(
-                                                fontSize: 16.0,
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.white,
+                                                fontSize: 15.0,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             Text(
-                                              'Subtotal: ${history.subtotal}, Quantity: ${history.quantity}',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 18.0,
+                                              'Subtotal: ${history.subtotal} Quantity: ${history.quantity}',
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.white,
+                                                fontSize: 15.0,
                                                 fontWeight: FontWeight.bold,
                                               ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
                                             ),
                                             Text(
                                               'Purchase Time: ${_formatDateTime(history.purchaseTime)}',
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.black,
+                                                fontSize: 15.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -146,9 +217,15 @@ class _HistoryPageState extends State<HistoryPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Lottie.asset(
+                    'assets/lottie/no_history.json',
+                    width: 330,
+                    height: 280,
+                  ),
                   Text(
-                    'Purchase History is Empty',
-                    style: TextStyle(fontSize: 18),
+                    'No History',
+                    style: GoogleFonts.poppins(
+                        fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -169,5 +246,18 @@ class _HistoryPageState extends State<HistoryPage> {
     var batch = db.batch();
     db.execute('DELETE FROM riwayat_bayar WHERE id=?', [id]);
     await batch.commit();
+  }
+
+  Widget buildProfileAvatar(String? imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CircleAvatar(
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? FileImage(File(imageUrl))
+            : AssetImage('assets/images/user_profile.png')
+                as ImageProvider<Object>,
+        radius: 30, // Sesuaikan radius sesuai kebutuhan
+      ),
+    );
   }
 }
