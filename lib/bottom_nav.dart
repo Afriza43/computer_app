@@ -3,7 +3,6 @@ import 'package:computer_app/cart.dart';
 import 'package:computer_app/history.dart';
 import 'package:computer_app/home.dart';
 import 'package:computer_app/profil.dart';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
