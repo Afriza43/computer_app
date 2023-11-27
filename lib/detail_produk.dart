@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:computer_app/helper/dbhelper.dart';
 import 'package:computer_app/models/Cart_model.dart';
 import 'package:computer_app/models/ComputerParts.dart';
+import 'package:computer_app/models/UserModels.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +23,7 @@ class _DetailPCState extends State<DetailPC> {
   String selectedCurrency = 'IDR';
   double exchangeRate = 1.0;
   late double _harga;
+  List<Users> userList = [];
 
   late SharedPreferences logindata;
   late String userName = '';
@@ -32,11 +36,27 @@ class _DetailPCState extends State<DetailPC> {
     getLoginData();
   }
 
+  Future<List<Users>> getUsers() async {
+    final Future<Database> dbFuture = dbHelper.initDb();
+    dbFuture.then((database) {
+      Future<List<Users>> userListFuture = dbHelper.getUsers(userName);
+      userListFuture.then((_userList) {
+        if (mounted) {
+          setState(() {
+            userList = _userList;
+          });
+        }
+      });
+    });
+    return userList;
+  }
+
   void getLoginData() async {
     SharedPreferences logindata = await SharedPreferences.getInstance();
     setState(() {
       userName = logindata.getString('username') ?? "";
     });
+    getUsers();
   }
 
   Future<bool> saveOrUpdateCart(Cart cartItem) async {
@@ -87,7 +107,7 @@ class _DetailPCState extends State<DetailPC> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          buildProfileAvatar('https://i.ibb.co/rp6BG70/ken.jpg'),
+          buildProfileAvatar(userList.isNotEmpty ? userList[0].gambar : null),
         ],
       ),
       body: SingleChildScrollView(
@@ -340,12 +360,15 @@ class _DetailPCState extends State<DetailPC> {
     );
   }
 
-  Widget buildProfileAvatar(String imageUrl) {
+  Widget buildProfileAvatar(String? imageUrl) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: CircleAvatar(
-        backgroundImage: NetworkImage(imageUrl),
-        radius: 30, // Adjust the radius as needed
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? FileImage(File(imageUrl))
+            : AssetImage('assets/images/user_profile.png')
+                as ImageProvider<Object>,
+        radius: 30, // Sesuaikan radius sesuai kebutuhan
       ),
     );
   }
